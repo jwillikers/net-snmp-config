@@ -1,0 +1,304 @@
+= Net-SNMP Config
+Jordan Williams <jordan@jwillikers.com>
+:experimental:
+:icons: font
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+:Net-SNMP: http://www.net-snmp.org/[Net-SNMP]
+
+My configurations for the {Net-SNMP} agent and manager.
+
+== Usage
+
+This repository contains configuration files for {Net-SNMP}, both for the manager and the agent daemon.
+The manager configuration files make it more convenient to interact with Net-SNMP agents.
+The agent configuration files are intended for configuring the Net-SNMP agents on various systems.
+The usage for the agent and the manager are described in separate sections.
+These instructions are intended for Fedora Atomic systems.
+
+. Create a `Projects` directory in the current user's home directory.
++
+[,sh]
+----
+mkdir --parents ~/Projects
+----
+
+. Clone this repository under `~/Projects`.
++
+[,sh]
+----
+git -C ~/Projects clone git@github.com:jwillikers/net-snmp-config.git
+----
+
+=== Manager
+
+. Install the `net-snmp-utils` package.
++
+[,sh]
+----
+sudo rpm-ostree install net-snmp-utils
+----
+
+. Reboot to complete the installation.
++
+[,sh]
+----
+sudo systemctl reboot.
+----
+
+. Create the `/etc/snmp` directory.
++
+[,sh]
+----
+sudo mkdir /etc/snmp/
+----
+
+. Copy the `etc/snmp/hosts` directory to the `/etc/snmp` directory.
++
+[,sh]
+----
+sudo cp --recursive etc/snmp/hosts /etc/snmp/
+----
+
+. For each host file in the `/etc/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
+The value for these fields is omitted from the configuration for security.
+
+. Test the configuration by querying an agent with the `snmpstatus` command.
+The name of the configuration file without the `.conf` suffix maps to argument passed to the `snmpstatus` command.
++
+[,sh]
+----
+snmpstatus cm4-01
+[UDP: [100.101.69.16]:161->[0.0.0.0]:36610]=>[Linux cm4-01.jwillikers.io 6.6.7-200.fc39.aarch64 #1 SMP PREEMPT_DYNAMIC Wed Dec 13 22:08:35 UTC 2023 aarch64] Up: 0:17:29.88
+Interfaces: 3, Recv/Trans packets: 52429/39127 | IP: 30919/28849
+----
+
+=== Agent
+
+. Install the `net-snmp` and `net-snmp-utils` packages.
++
+--
+[,sh]
+----
+sudo rpm-ostree install net-snmp net-snmp-utils
+----
+
+[NOTE]
+====
+While the `net-snmp-utils` package is not required to run the agent or to create the initial user, it is helpful for testing things out on the host running the agent.
+====
+--
+
+. Reboot to complete the installation.
++
+[,sh]
+----
+sudo systemctl reboot.
+----
+
+. Add a firewall rule to open the necessary port.
++
+[,sh]
+----
+sudo firewall-cmd --add-service=snmp --permanent
+----
+
+. Apply the new rule.
++
+[,sh]
+----
+sudo firewall-cmd --reload
+----
+
+. Ensure that the `snmpd` daemon is stopped.
++
+[,sh]
+----
+sudo systemctl stop snmpd
+----
+
+. Copy `snmpd.conf` file from the `etc/snmp/` directory for the desired host to `/etc/snmp/snmpd.conf`.
++
+[,sh]
+----
+sudo cp etc/snmp/cm4-01.snmpd.conf /etc/snmp/snmpd.conf
+----
+
+. Ensure that the `/etc/snmp/snmpd.conf` file is labelled correctly for SELinux.
++
+[,sh]
+----
+sudo restorecon /etc/snmp/snmpd.conf
+----
+
+. Create an SNMPv3 template user.
+When prompted, enter the authentication and privacy passphrases.
++
+[,sh]
+----
+sudo net-snmp-create-v3-user -a SHA-256 -x AES128 templateshaaes
+Enter authentication pass-phrase: 
+****
+Enter encryption pass-phrase: 
+  [press return to reuse the authentication pass-phrase]
+****
+adding the following line to /var/lib/net-snmp/snmpd.conf:
+   createUser templateshaaes SHA-256 "****" AES128 "****"
+adding the following line to /etc/snmp/snmpd.conf:
+   rwuser templateshaaes
+----
+
+. Start the `snmpd` service to initialize the new user.
++
+[,sh]
+----
+sudo systemctl enable --now snmpd
+----
+
+. Test the new template user with a query.
+Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
++
+[,sh]
+----
+snmpstatus -v 3 -l priv -u templateshaaes \
+  -A 'authPassword' -a SHA-256 \
+  -X 'encryptionPassword' -x AES128 localhost
+[UDP: [127.0.0.1]:161->[0.0.0.0]:51886]=>[Linux cm4-01.jwillikers.io 6.6.7-200.fc39.aarch64 #1 SMP PREEMPT_DYNAMIC Wed Dec 13 22:08:35 UTC 2023 aarch64] Up: 0:00:43.90
+Interfaces: 3, Recv/Trans packets: 43650/32565 | IP: 26560/24381
+----
+
+Create a new user, `monitor` as an example here, based off of the template user.
+Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
++
+[,sh]
+----
+snmpusm -v3 -l priv -u templateshaaes \
+  -A 'authPassword' -a SHA-256 \
+  -X 'encryptionPassword' -x AES128 \
+  localhost create monitor templateshaaes
+User successfully created.
+----
+
+. Set the authentication passphrase for the new user.
+Substitute `newAuthPassword` with the desired passphrase and `monitor` with the appropriate user.
+Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
++
+[,sh]
+----
+snmpusm -v3 -l priv -u templateshaaes \
+  -A 'authPassword' -a SHA-256 \
+  -X 'encryptionPassword' -x AES128 -Ca \
+  localhost passwd 'authPassword' 'newAuthPassword' monitor
+SNMPv3 Key(s) successfully changed.
+----
+
+. Set the encryption passphrase for the new user.
+Substitute `newEncryptionPassword` with the desired passphrase and `monitor` with the appropriate user.
+Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
++
+[,sh]
+----
+snmpusm -v3 -l priv -u templateshaaes \
+  -A 'authPassword' -a SHA-256 \
+  -X 'encryptionPassword' -x AES128 -Cx \
+  localhost passwd 'encryptionPassword' 'newEncryptionPassword' monitor
+SNMPv3 Key(s) successfully changed.
+----
+
+. Verify the new user is available in the user table.
+Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
++
+[,sh]
+----
+snmptable -v3 -l priv -u templateshaaes \
+  -A 'authPassword' -a SHA-256 \
+  -X 'encryptionPassword' -x AES128 -Cb \
+  localhost usmUserTable
+SNMP table: SNMP-USER-BASED-SM-MIB::usmUserTable
+
+   SecurityName               CloneFrom                            AuthProtocol AuthKeyChange OwnAuthKeyChange                            PrivProtocol PrivKeyChange OwnPrivKeyChange Public StorageType Status
+        monitor SNMPv2-SMI::zeroDotZero SNMP-FRAMEWORK-MIB::snmpAuthProtocols.5            ""               "" SNMP-FRAMEWORK-MIB::snmpPrivProtocols.4            ""               ""     "" nonVolatile active
+ templateshaaes SNMPv2-SMI::zeroDotZero SNMP-FRAMEWORK-MIB::snmpAuthProtocols.5            ""               "" SNMP-FRAMEWORK-MIB::snmpPrivProtocols.4            ""               ""     "" nonVolatile active
+----
+
+. Update the user used in the `/etc/snmp/snmpd.conf` file with the username of the newly created user as necessary.
+Be sure that the access, either read-only or read-write, is configured correctly for the user.
++
+./etc/snmp/snmpd.conf
+[source]
+----
+rouser monitor
+----
+
+. Restart the `snmpd` service load the new configuration and persist the updated user database to disk.
++
+[,sh]
+----
+sudo systemctl restart snmpd
+----
+
+=== Create a New Agent Config
+
+A new agent configuration can be generated with the `snmpconf` command.
+
+. Change to a directory where a config file doesn't usually reside, such as the repository's directory.
++
+[,sh]
+----
+cd ~/Projects/net-snmp-config
+----
+
+. Generate a new config.
++
+[,sh]
+----
+snmpconf -g basic_setup
+----
+
+. Move the new config to this repository's `etc/snmp` directory, and rename it according to the host.
++
+[,sh]
+----
+mv snmpd.conf etc/snmp/cm4-02.snmpd.conf
+----
+
+. Add a corresponding manager configuration file for the new agent in the `etc/snmp/hosts` directory, using the desired name to use to refer to the agent as the name of the file followed by the suffix `.conf`.
+It's probably easiest to copy an existing configuration file and tweak it as necessary.
++
+--
+[CAUTION]
+====
+Leave the placeholder values for the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields to avoid leaking secrets in this public Git repository.
+====
+
+[,sh]
+----
+cp etc/snmp/hosts/cm4-01.conf etc/snmp/hosts/cm4-02.conf
+----
+--
+
+== References
+
+* https://bookshop.org/p/books/snmp-mastery-michael-w-lucas/14394929[SNMP Mastery] by Michael W. Lucas
+
+== Code of Conduct
+
+Please refer to the project's link:CODE_OF_CONDUCT.adoc[Code of Conduct].
+
+== License
+
+This repository is licensed under the https://www.gnu.org/licenses/gpl-3.0.html[GPLv3].
+Please refer to the bundled link:LICENSE.adoc[license].
+
+== Copyright
+
+© 2023 Jordan Williams
+
+== Authors
+
+mailto:{email}[{author}]
