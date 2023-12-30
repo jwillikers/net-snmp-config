@@ -80,12 +80,13 @@ Interfaces: 3, Recv/Trans packets: 52429/39127 | IP: 30919/28849
 
 === Agent
 
-. Install the `net-snmp` and `net-snmp-utils` packages.
+. Install the `lm_sensors`, `net-snmp`, and `net-snmp-utils` packages.
+The `lm_sensors` package is used to report reading of hardware senors.
 +
 --
 [,sh]
 ----
-sudo rpm-ostree install net-snmp net-snmp-utils
+sudo rpm-ostree install lm_sensors net-snmp net-snmp-utils
 ----
 
 [NOTE]
@@ -285,6 +286,7 @@ cp etc/snmp/hosts/cm4-01.conf etc/snmp/hosts/cm4-02.conf
 == References
 
 * https://bookshop.org/p/books/snmp-mastery-michael-w-lucas/14394929[SNMP Mastery] by Michael W. Lucas
+* https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/ch-system_monitoring_tools#sect-System_Monitoring_Tools-Net-SNMP[Red Hat Enterprise Linux 7 System Administrator's Guide - 21.7. Monitoring Performance with Net-SNMP]
 
 == Code of Conduct
 
