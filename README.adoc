@@ -236,6 +236,18 @@ Be sure that the access, either read-only or read-write, is configured correctly
 rouser monitor
 ----
 
+. Unfortunately, SELinux doesn't want to allow execution of the `systemctl` command from the `snmpd_t` context.
+This is allowed to check if a systemd service has failed.
+A typical process check won't work in cases where the systemd unit runs at intervals.
+Disable SELinux from enforcing the `snmpd_t` context to allow this functionality.
+I wasn't able to get this working with a custom SELinux module.
+Ideally, this workaround would be less permissive but I haven't figured out a way to do that yet.
++
+[,sh]
+----
+sudo semanage permissive -a snmpd_t
+----
+
 . Restart the `snmpd` service load the new configuration and persist the updated user database to disk.
 +
 [,sh]

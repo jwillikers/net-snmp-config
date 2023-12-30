@@ -9,6 +9,7 @@
         "ostree",
         "restorecon",
         "rwuser",
+        "semanage",
         "snmp",
         "snmpconf",
         "snmpstatus",
