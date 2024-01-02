@@ -120,8 +120,6 @@ sudo chown --recursive root:snmp /etc/snmp
 sudo chmod --recursive 0640 /etc/snmp
 ----
 
-// todo Create an `snmp` group and make sure these files are not world readable since they contain passphrases.
-
 . For each host file in the `/etc/snmp/hosts` or `~/.config/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
 The value for these fields is omitted from the configuration for security.
 
