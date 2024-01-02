@@ -53,11 +53,11 @@ sudo systemctl reboot.
 
 User::
 +
-.. Create the `~/.config/snmp` directory.
+.. Create the `~/.config/snmp/hosts` directory.
 +
 [,sh]
 ----
-mkdir --parents ~/.config/snmp
+mkdir --parents ~/.config/snmp/hosts
 ----
 
 .. Symlink the `~/.config/snmp` directory to `~/.snmp` where Net-SNMP will find it.
@@ -67,11 +67,27 @@ mkdir --parents ~/.config/snmp
 ln --relative --symbolic ~/.config/snmp ~/.snmp
 ----
 
-.. Symlink the `etc/snmp/hosts` directory to `~/.config/snmp/hosts`.
+.. Copy the template config files to the `~/.config/snmp/hosts` directory.
++
+Bash:::
 +
 [,sh]
 ----
-ln --relative --symbolic etc/snmp/hosts ~/.config/snmp/hosts
+for host_template in etc/snmp/hosts/*.conf.template; do cp -- "$host_template" ~/.config/snmp/hosts/$(basename -- "$host_template" ".template"); done
+----
+
+fish:::
++
+[,sh]
+----
+for host_template in etc/snmp/hosts/*.conf.template; cp -- "$host_template" ~/.config/snmp/hosts/(basename -- "$host_template" ".template"); end
+----
+
+Nushell:::
++
+[,sh]
+----
+for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp $host_template $"($env.HOME)/.config/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
 ----
 
 System::
@@ -83,11 +99,27 @@ System::
 sudo mkdir /etc/snmp/
 ----
 
-.. Copy the `etc/snmp/hosts` directory to the `/etc/snmp` directory.
+.. Copy the template host config files to the `/etc/snmp/hosts` directory.
++
+Bash:::
 +
 [,sh]
 ----
-sudo cp --recursive etc/snmp/hosts /etc/snmp/
+for host_template in etc/snmp/hosts/*.conf.template; do cp -- "$host_template" /etc/snmp/hosts/$(basename -- "$host_template" ".template"); done
+----
+
+fish:::
++
+[,sh]
+----
+for host_template in etc/snmp/hosts/*.conf.template; cp -- "$host_template" /etc//snmp/hosts/(basename -- "$host_template" ".template"); end
+----
+
+Nushell:::
++
+[,sh]
+----
+for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp $host_template $"/etc/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
 ----
 
 .. Create an `snmp` group.

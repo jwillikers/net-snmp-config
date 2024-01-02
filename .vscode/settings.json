@@ -6,6 +6,7 @@
         "jwillikers",
         "mkdir",
         "nproc",
+        "Nushell",
         "ostree",
         "restorecon",
         "rwuser",
@@ -16,6 +17,7 @@
         "snmptable",
         "snmpusm",
         "templateshaaes",
+        "upsert",
         "usermod"
     ]
 }
