@@ -51,21 +51,78 @@ sudo rpm-ostree install net-snmp-utils
 sudo systemctl reboot.
 ----
 
-. Create the `/etc/snmp` directory.
+User::
++
+.. Create the `~/.config/snmp` directory.
++
+[,sh]
+----
+mkdir --parents ~/.config/snmp
+----
+
+.. Symlink the `~/.config/snmp` directory to `~/.snmp` where Net-SNMP will find it.
++
+[,sh]
+----
+ln --relative --symbolic ~/.config/snmp ~/.snmp
+----
+
+.. Symlink the `etc/snmp/hosts` directory to `~/.config/snmp/hosts`.
++
+[,sh]
+----
+ln --relative --symbolic etc/snmp/hosts ~/.config/snmp/hosts
+----
+
+System::
++
+.. Create the `/etc/snmp` directory.
 +
 [,sh]
 ----
 sudo mkdir /etc/snmp/
 ----
 
-. Copy the `etc/snmp/hosts` directory to the `/etc/snmp` directory.
+.. Copy the `etc/snmp/hosts` directory to the `/etc/snmp` directory.
 +
 [,sh]
 ----
 sudo cp --recursive etc/snmp/hosts /etc/snmp/
 ----
 
-. For each host file in the `/etc/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
+.. Create an `snmp` group.
++
+[,sh]
+----
+sudo groupadd snmp
+----
+
+.. Add the desired user to this group, such as the current user in this example.
++
+[,sh]
+----
+sudo usermod --append --group snmp $USER
+----
+
+.. Log out and back in for the group change to take effect.
+
+.. Change the ownership of `/etc/snmp` to be owned by the `root` user and the `snmp` group.
++
+[,sh]
+----
+sudo chown --recursive root:snmp /etc/snmp
+----
+
+.. Restrict the permissions of `/etc/snmp` to the user and group only.
++
+[,sh]
+----
+sudo chmod --recursive 0640 /etc/snmp
+----
+
+// todo Create an `snmp` group and make sure these files are not world readable since they contain passphrases.
+
+. For each host file in the `/etc/snmp/hosts` or `~/.config/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
 The value for these fields is omitted from the configuration for security.
 
 . Test the configuration by querying an agent with the `snmpstatus` command.

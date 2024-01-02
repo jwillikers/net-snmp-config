@@ -15,6 +15,7 @@
         "snmpstatus",
         "snmptable",
         "snmpusm",
-        "templateshaaes"
+        "templateshaaes",
+        "usermod"
     ]
 }
