@@ -1,5 +1,5 @@
 defVersion 3
 defSecurityName theUser
-defAuthPassphrase beVeryCareful
+defAuthPassphrase "beVeryCareful"
 defAuthType MD5
 defSecurityLevel authNoPriv
