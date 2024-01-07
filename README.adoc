@@ -357,6 +357,31 @@ SNMP table: SNMP-USER-BASED-SM-MIB::usmUserTable
  templateshaaes SNMPv2-SMI::zeroDotZero SNMP-FRAMEWORK-MIB::snmpAuthProtocols.5            ""               "" SNMP-FRAMEWORK-MIB::snmpPrivProtocols.4            ""               ""     "" nonVolatile active
 ----
 
+. Delete any sensitive data that may now be in your shell's history.
++
+Bash:: For Bash, just delete all history to be safe.
++
+[,sh]
+----
+history -cw
+----
+
+fish:: The following command deletes fish shell's history for any of the `snmptable` and `snmpusm` commands.
+It will prompt you for which entries should be deleted.
+Enter `all` to delete all matches.
++
+[,sh]
+----
+history delete snmptable snmpusm
+----
+
+Nushell:: For Nushell, wipe all history.
++
+[,sh]
+----
+history --clear
+----
+
 === Create a New Agent Config
 
 A new agent configuration can be generated with the `snmpconf` command.
