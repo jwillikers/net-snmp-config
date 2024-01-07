@@ -32,7 +32,14 @@ mkdir --parents ~/Projects
 +
 [,sh]
 ----
-git -C ~/Projects clone git@github.com:jwillikers/net-snmp-config.git
+git -C ~/Projects clone https://github.com/jwillikers/net-snmp-config.git
+----
+
+. Change to the project's directory.
++
+[,sh]
+----
+cd ~/Projects/net-snmp-config
 ----
 
 === Manager
@@ -167,9 +174,19 @@ Interfaces: 3, Recv/Trans packets: 52429/39127 | IP: 30919/28849
 
 === Agent
 
-. Install the `lm_sensors`, `net-snmp`, and `net-snmp-utils` packages.
-The `lm_sensors` package is used to report reading of hardware senors.
+. Install lm-sensors and Net-SNMP.
 +
+Debian::
++
+[,sh]
+----
+sudo apt-get --yes lm-sensors snmp snmpd
+----
+
+Fedora::
++
+Install the `lm_sensors`, `net-snmp`, and `net-snmp-utils` packages.
+The `lm_sensors` package is used to report reading of hardware senors.
 --
 [,sh]
 ----
@@ -203,6 +220,18 @@ sudo firewall-cmd --add-service=snmp --permanent
 sudo firewall-cmd --reload
 ----
 
+. Unfortunately, SELinux doesn't want to allow execution of the `systemctl` command from the `snmpd_t` context.
+This is allowed to check if a systemd service has failed.
+A typical process check won't work in cases where the systemd unit runs at intervals.
+Disable SELinux from enforcing the `snmpd_t` context to allow this functionality.
+I wasn't able to get this working with a custom SELinux module.
+Ideally, this workaround would be less permissive but I haven't figured out a way to do that yet.
++
+[,sh]
+----
+sudo semanage permissive -a snmpd_t
+----
+
 . Ensure that the `snmpd` daemon is stopped.
 +
 [,sh]
@@ -214,7 +243,7 @@ sudo systemctl stop snmpd
 +
 [,sh]
 ----
-sudo cp etc/snmp/cm4-01.snmpd.conf /etc/snmp/snmpd.conf
+sudo cp etc/snmp/$(hostname --short).snmpd.conf /etc/snmp/snmpd.conf
 ----
 
 . Ensure that the `/etc/snmp/snmpd.conf` file is labelled correctly for SELinux.
@@ -260,7 +289,7 @@ snmpstatus -v 3 -l priv -u templateshaaes \
 Interfaces: 3, Recv/Trans packets: 43650/32565 | IP: 26560/24381
 ----
 
-Create a new user, `monitor` as an example here, based off of the template user.
+. Create a new user, `monitor` as an example here, based off of the template user.
 Replace `authPassword` with the authentication passphrase and `encryptionPassword` with the privacy passphrase for the template user.
 +
 [,sh]
@@ -312,34 +341,6 @@ SNMP table: SNMP-USER-BASED-SM-MIB::usmUserTable
    SecurityName               CloneFrom                            AuthProtocol AuthKeyChange OwnAuthKeyChange                            PrivProtocol PrivKeyChange OwnPrivKeyChange Public StorageType Status
         monitor SNMPv2-SMI::zeroDotZero SNMP-FRAMEWORK-MIB::snmpAuthProtocols.5            ""               "" SNMP-FRAMEWORK-MIB::snmpPrivProtocols.4            ""               ""     "" nonVolatile active
  templateshaaes SNMPv2-SMI::zeroDotZero SNMP-FRAMEWORK-MIB::snmpAuthProtocols.5            ""               "" SNMP-FRAMEWORK-MIB::snmpPrivProtocols.4            ""               ""     "" nonVolatile active
-----
-
-. Update the user used in the `/etc/snmp/snmpd.conf` file with the username of the newly created user as necessary.
-Be sure that the access, either read-only or read-write, is configured correctly for the user.
-+
-./etc/snmp/snmpd.conf
-[source]
-----
-rouser monitor
-----
-
-. Unfortunately, SELinux doesn't want to allow execution of the `systemctl` command from the `snmpd_t` context.
-This is allowed to check if a systemd service has failed.
-A typical process check won't work in cases where the systemd unit runs at intervals.
-Disable SELinux from enforcing the `snmpd_t` context to allow this functionality.
-I wasn't able to get this working with a custom SELinux module.
-Ideally, this workaround would be less permissive but I haven't figured out a way to do that yet.
-+
-[,sh]
-----
-sudo semanage permissive -a snmpd_t
-----
-
-. Restart the `snmpd` service load the new configuration and persist the updated user database to disk.
-+
-[,sh]
-----
-sudo systemctl restart snmpd
 ----
 
 === Create a New Agent Config
