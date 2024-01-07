@@ -101,7 +101,7 @@ for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp --no-clobber $
 +
 [,sh]
 ----
-chmod --recursive 0640 ~/.config/snmp/hosts/
+chmod 0640 ~/.config/snmp/hosts/*.conf
 ----
 
 System::
@@ -150,13 +150,6 @@ sudo groupadd snmp
 sudo usermod --append --group snmp $USER
 ----
 
-.. Make sure that the sensitive files are not world readable.
-+
-[,sh]
-----
-chmod --recursive 0640 /etc/snmp/hosts/
-----
-
 .. Log out and back in for the group change to take effect.
 
 .. Change the ownership of `/etc/snmp` to be owned by the `root` user and the `snmp` group.
@@ -166,11 +159,11 @@ chmod --recursive 0640 /etc/snmp/hosts/
 sudo chown --recursive root:snmp /etc/snmp
 ----
 
-.. Restrict the permissions of `/etc/snmp` to the user and group only.
+.. Restrict the permissions of the configuration files to the user and group only.
 +
 [,sh]
 ----
-sudo chmod --recursive 0640 /etc/snmp
+sudo chmod 0640 /etc/snmp/hosts/*.conf
 ----
 
 . For each host file in the `/etc/snmp/hosts` or `~/.config/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
