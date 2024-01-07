@@ -97,6 +97,13 @@ Nushell:::
 for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp --no-clobber $host_template $"($env.HOME)/.config/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
 ----
 
+.. Make sure that the sensitive files are not world readable.
++
+[,sh]
+----
+chmod --recursive 0640 ~/.config/snmp/hosts/
+----
+
 System::
 +
 .. Create the `/etc/snmp` directory.
@@ -141,6 +148,13 @@ sudo groupadd snmp
 [,sh]
 ----
 sudo usermod --append --group snmp $USER
+----
+
+.. Make sure that the sensitive files are not world readable.
++
+[,sh]
+----
+chmod --recursive 0640 /etc/snmp/hosts/
 ----
 
 .. Log out and back in for the group change to take effect.
