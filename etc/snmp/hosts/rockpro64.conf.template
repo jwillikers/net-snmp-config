@@ -1,0 +1,7 @@
+defVersion 3
+defSecurityName monitor
+defAuthPassphrase "beVeryCareful"
+defAuthType SHA-256
+defPrivPassphrase "moreCarefulThanThat"
+defPrivType AES128
+defSecurityLevel authPriv
