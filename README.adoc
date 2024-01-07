@@ -80,21 +80,21 @@ Bash:::
 +
 [,sh]
 ----
-for host_template in etc/snmp/hosts/*.conf.template; do cp -- "$host_template" ~/.config/snmp/hosts/$(basename -- "$host_template" ".template"); done
+for host_template in etc/snmp/hosts/*.conf.template; do cp --no-clobber -- "$host_template" ~/.config/snmp/hosts/$(basename -- "$host_template" ".template"); done
 ----
 
 fish:::
 +
 [,sh]
 ----
-for host_template in etc/snmp/hosts/*.conf.template; cp -- "$host_template" ~/.config/snmp/hosts/(basename -- "$host_template" ".template"); end
+for host_template in etc/snmp/hosts/*.conf.template; cp --no-clobber -- "$host_template" ~/.config/snmp/hosts/(basename -- "$host_template" ".template"); end
 ----
 
 Nushell:::
 +
 [,sh]
 ----
-for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp $host_template $"($env.HOME)/.config/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
+for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp --no-clobber $host_template $"($env.HOME)/.config/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
 ----
 
 System::
@@ -112,21 +112,21 @@ Bash:::
 +
 [,sh]
 ----
-for host_template in etc/snmp/hosts/*.conf.template; do cp -- "$host_template" /etc/snmp/hosts/$(basename -- "$host_template" ".template"); done
+for host_template in etc/snmp/hosts/*.conf.template; do cp --no-clobber -- "$host_template" /etc/snmp/hosts/$(basename -- "$host_template" ".template"); done
 ----
 
 fish:::
 +
 [,sh]
 ----
-for host_template in etc/snmp/hosts/*.conf.template; cp -- "$host_template" /etc//snmp/hosts/(basename -- "$host_template" ".template"); end
+for host_template in etc/snmp/hosts/*.conf.template; cp --no-clobber -- "$host_template" /etc//snmp/hosts/(basename -- "$host_template" ".template"); end
 ----
 
 Nushell:::
 +
 [,sh]
 ----
-for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp $host_template $"/etc/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
+for host_template in (glob "etc/snmp/hosts/*.conf.template") { cp --no-clobber $host_template $"/etc/snmp/hosts/($host_template | path basename | path parse | reject extension | path join)" }
 ----
 
 .. Create an `snmp` group.
