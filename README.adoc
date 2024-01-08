@@ -227,16 +227,47 @@ sudo firewall-cmd --add-service=snmp --permanent
 sudo firewall-cmd --reload
 ----
 
-. Unfortunately, SELinux doesn't want to allow execution of the `systemctl` command from the `snmpd_t` context.
-This is allowed to check if a systemd service has failed.
-A typical process check won't work in cases where the systemd unit runs at intervals.
-Disable SELinux from enforcing the `snmpd_t` context to allow this functionality.
-I wasn't able to get this working with a custom SELinux module.
-Ideally, this workaround would be less permissive but I haven't figured out a way to do that yet.
+. Create an SELinux policy to allow snmpd to query systemd for service state.
++
+.snmpd_systemctl.te
+[source]
+----
+module snmpd_systemctl 1.0;
+
+require {
+        type snmpd_t;
+        type systemd_systemctl_exec_t;
+        type init_t;
+        class file { execute execute_no_trans map open read };
+        class unix_stream_socket connectto;
+        class system status;
+}
+
+#============= snmpd_t ==============
+allow snmpd_t init_t:system status;
+allow snmpd_t init_t:unix_stream_socket connectto;
+allow snmpd_t systemd_systemctl_exec_t:file { execute execute_no_trans map open read };
+----
+
+. Compile the SELinux policy module.
 +
 [,sh]
 ----
-sudo semanage permissive -a snmpd_t
+checkmodule -m --mls --output snmpd_systemctl.mod snmpd_systemctl.te
+----
+
+. Create a SELinux policy module package.
++
+[,sh]
+----
+semodule_package --outfile snmpd_systemctl.pp --module snmpd_systemctl.mod
+----
+
+. Install the SELinux Policy module.
++
+[,sh]
+----
+sudo semodule --install snmpd_systemctl.pp
 ----
 
 . Ensure that the `snmpd` daemon is stopped.
