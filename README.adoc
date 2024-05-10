@@ -187,7 +187,7 @@ Debian::
 +
 [,sh]
 ----
-sudo apt-get --yes lm-sensors snmp snmpd
+sudo apt-get --yes install lm-sensors snmp snmpd
 ----
 
 Fedora::
