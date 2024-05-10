@@ -1,0 +1,13 @@
+# List (or glob) of disk devices to monitor
+#DEVICES=(/dev/sd[a-z])|(/dev/nvme0n[0-9])
+DEVICES=(/dev/nvme0n[0-9])
+
+# Path to cache directory
+CACHEDIR=/opt/mad-hacking.net/snmp/var/lib/smartctl
+
+# Command to run smartctl
+SMARTCMD="/usr/sbin/smartctl"
+
+# Define debug to log lots
+# Enabling this option breaks the integration with snmpd.
+# DEBUG="true"

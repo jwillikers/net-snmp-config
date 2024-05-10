@@ -74,6 +74,13 @@ mkdir --parents ~/.config/snmp/hosts
 ln --relative --symbolic ~/.config/snmp ~/.snmp
 ----
 
+.. Copy the default `snmp.conf` file to the `~/.snmp/` directory.
++
+[,sh]
+----
+cp etc/snmp/snmp.conf ~/.snmp/
+----
+
 .. Copy the template config files to the `~/.config/snmp/hosts` directory.
 +
 Bash:::
@@ -111,6 +118,13 @@ System::
 [,sh]
 ----
 sudo mkdir /etc/snmp/
+----
+
+.. Copy the default `snmp.conf` file to the `/etc/snmp/` directory.
++
+[,sh]
+----
+sudo cp etc/snmp/snmp.conf /etc/snmp/
 ----
 
 .. Copy the template host config files to the `/etc/snmp/hosts` directory.
@@ -169,6 +183,88 @@ sudo chmod 0640 /etc/snmp/hosts/*.conf
 . For each host file in the `/etc/snmp/hosts` or `~/.config/snmp/hosts` directory, fill-in the `defSecurityName`, `defAuthPassphrase`, and `defPrivPassphrase` fields with the correct values.
 The value for these fields is omitted from the configuration for security.
 
+. Add the necessary MIBs.
++
+User::
++
+.. Clone the https://github.com/netdisco/netdisco-mibs[Netdisco - MIB Repository] to `~/.snmp/mibs/netdisco`.
++
+[,sh]
+----
+git clone https://github.com/netdisco/netdisco-mibs.git ~/.snmp/mibs/netdisco
+----
+
+.. Symlink the MIB files in the `~/.snmp/mibs/netdisco/openbsd` and `~/.snmp/mibs/netdisco/tplink` directories to `~/.snmp/mibs/`.
++
+[,sh]
+----
+ln --force --relative --symbolic \
+  ~/.snmp/mibs/netdisco/openbsd/*.txt \
+  ~/.snmp/mibs/netdisco/tplink/*.mib \
+  ~/.snmp/mibs/
+----
+
+.. Clone the https://github.com/MADhacking/hacking-snmp-mib[hacking-snmp-mib] to `~/.snmp/mibs/hacking-snmp`.
++
+[,sh]
+----
+curl --location --output-dir ~/.snmp/mibs --remote-name https://raw.githubusercontent.com/MADhacking/hacking-snmp-mib/master/usr/share/snmp/mibs/HACKING-SNMP-MIB.txt
+----
+
+.. Clone the https://github.com/MADhacking/smartctl-snmp-mib[smartctl-snmp-mib] to `~/.snmp/mibs/smartctl-snmp`.
++
+[,sh]
+----
+curl --location --output-dir ~/.snmp/mibs --remote-name https://raw.githubusercontent.com/MADhacking/smartctl-snmp-mib/master/usr/share/snmp/mibs/SMARTCTL-MIB.txt
+----
+
+System::
++
+.. Create the `/usr/local/share/snmp/mibs` directory.
++
+[,sh]
+----
+sudo mkdir --parents /usr/local/share/snmp/mibs
+----
+
+.. Clone the https://github.com/netdisco/netdisco-mibs[Netdisco - MIB Repository] to `/usr/local/share/snmp/mibs/netdisco`.
++
+[,sh]
+----
+sudo git clone https://github.com/netdisco/netdisco-mibs.git /usr/local/share/snmp/mibs/netdisco
+----
+
+.. Symlink the MIB files in the `netdisco/openbsd` and `netdisco/tplink` subdirectories to `/usr/local/share/snmp/mibs/`.
++
+[,sh]
+----
+sudo ln --force --relative --symbolic \
+  /usr/local/share/snmp/mibs/netdisco/openbsd/*.txt \
+  /usr/local/share/snmp/mibs/netdisco/tplink/*.mib \
+  /usr/local/share/snmp/mibs/
+----
+
+.. Download the https://github.com/MADhacking/hacking-snmp-mib[hacking-snmp-mib].
++
+[,sh]
+----
+curl --location --remote-name https://raw.githubusercontent.com/MADhacking/hacking-snmp-mib/master/usr/share/snmp/mibs/HACKING-SNMP-MIB.txt
+----
+
+.. Download the https://github.com/MADhacking/smartctl-snmp-mib[smartctl-snmp-mib].
++
+[,sh]
+----
+curl --location --remote-name https://raw.githubusercontent.com/MADhacking/smartctl-snmp-mib/master/usr/share/snmp/mibs/SMARTCTL-MIB.txt
+----
+
+.. Install the MIB files to `/usr/local/share/snmp/mibs/`.
++
+[,sh]
+----
+sudo mv HACKING-SNMP-MIB.txt SMARTCTL-MIB.txt /usr/local/share/snmp/mibs/
+----
+
 . Test the configuration by querying an agent with the `snmpstatus` command.
 The name of the configuration file without the `.conf` suffix maps to argument passed to the `snmpstatus` command.
 +
@@ -180,6 +276,8 @@ Interfaces: 3, Recv/Trans packets: 52429/39127 | IP: 30919/28849
 ----
 
 === Agent
+
+// todo Install Nushell.
 
 . Install lm-sensors and Net-SNMP.
 +
@@ -197,7 +295,7 @@ The `lm_sensors` package is used to report reading of hardware senors.
 --
 [,sh]
 ----
-sudo rpm-ostree install lm_sensors net-snmp net-snmp-utils
+sudo rpm-ostree install lm_sensors net-snmp net-snmp-utils perl-JSON perl-MIME-Base64 python-is-python3 smartmontools
 ----
 
 [NOTE]
@@ -205,6 +303,105 @@ sudo rpm-ostree install lm_sensors net-snmp net-snmp-utils
 While the `net-snmp-utils` package is not required to run the agent or to create the initial user, it is helpful for testing things out on the host running the agent.
 ====
 --
+
+. Copy the `etc/snmp/smartctl-connector.snmp.conf` file to `/etc/snmp/snmp.conf`.
+This will load the appropriate MIB files from the `/usr/local/share/snmp/mibs` directory for the `snmpd-smartctl-connector`.
++
+[,sh]
+----
+sudo cp etc/snmp/smartctl-connector.snmp.conf /etc/snmp/snmp.conf
+----
+
+. Create the `/usr/local/share/snmp/mibs` directory.
++
+[,sh]
+----
+sudo mkdir --parents /usr/local/share/snmp/mibs
+----
+
+. Download the https://github.com/MADhacking/hacking-snmp-mib[hacking-snmp-mib].
++
+[,sh]
+----
+curl --location --remote-name https://raw.githubusercontent.com/MADhacking/hacking-snmp-mib/master/usr/share/snmp/mibs/HACKING-SNMP-MIB.txt
+----
+
+. Download the https://github.com/MADhacking/smartctl-snmp-mib[smartctl-snmp-mib].
++
+[,sh]
+----
+curl --location --remote-name https://raw.githubusercontent.com/MADhacking/smartctl-snmp-mib/master/usr/share/snmp/mibs/SMARTCTL-MIB.txt
+----
+
+. Install the MIB files to `/usr/local/share/snmp/mibs/`.
++
+[,sh]
+----
+sudo mv HACKING-SNMP-MIB.txt SMARTCTL-MIB.txt /usr/local/share/snmp/mibs/
+----
+
+. Install the snmpd-smartctl-connector in the `/opt/mad-hacking.net/snmp` directory.
++
+[,sh]
+----
+sudo mkdir --parents /opt/mad-hacking.net/snmp/{sbin,etc,lib,var/lib/smartctl}
+curl --location --output hacking-bash-lib-1.0.1.tar.gz https://github.com/MADhacking/hacking-bash-lib/archive/refs/tags/1.0.1.tar.gz
+tar xf hacking-bash-lib-1.0.1.tar.gz
+sudo cp hacking-bash-lib-1.0.1/usr/lib/hacking-bash.sh /opt/mad-hacking.net/snmp/lib
+rm --force --recursive hacking-bash-lib-1.0.1*
+curl --location --output snmpd-connector-lib-1.0.0.tar.gz https://github.com/MADhacking/snmpd-connector-lib/archive/refs/tags/1.0.0.tar.gz
+tar xf snmpd-connector-lib-1.0.0.tar.gz
+sudo cp snmpd-connector-lib-1.0.0/usr/lib/snmpd-connector-lib.sh /opt/mad-hacking.net/snmp/lib
+sudo sed -i 's#/usr/lib/hacking-bash.sh#/opt/mad-hacking.net/snmp/lib/hacking-bash.sh#' /opt/mad-hacking.net/snmp/lib/snmpd-connector-lib.sh
+rm --force --recursive snmpd-connector-lib-1.0.0*
+curl --location --output snmpd-smartctl-connector-1.1.0.tar.gz https://github.com/MADhacking/snmpd-smartctl-connector/archive/refs/tags/1.1.0.tar.gz
+tar xf snmpd-smartctl-connector-1.1.0.tar.gz
+sudo cp snmpd-smartctl-connector-1.1.0/usr/sbin/* /opt/mad-hacking.net/snmp/sbin/
+sudo sed -i 's#/usr/lib/snmpd-connector-lib.sh#/opt/mad-hacking.net/snmp/lib/snmpd-connector-lib.sh#' /opt/mad-hacking.net/snmp/sbin/*
+sudo sed -i 's#/etc/snmpd-smartctl-connector#/opt/mad-hacking.net/snmp/etc/snmpd-smartctl-connector#' /opt/mad-hacking.net/snmp/sbin/*
+rm --force --recursive snmpd-smartctl-connector-1.1.0
+----
+
+[,sh]
+----
+sudo cp opt/mad-hacking.net/snmp/etc/$(hostname --short).snmpd-smartctl-connector /opt/mad-hacking.net/snmp/etc/snmpd-smartctl-connector
+----
+
+. Install the service and timer units to update the cache for the `snmpd-smartctl-connector`.
++
+[,sh]
+----
+sudo cp etc/systemd/system/update-smartctl-cache.{service,timer} /etc/systemd/system/
+----
+
+. Start and enable the `update-smartctl-cache.timer` unit.
++
+[,sh]
+----
+sudo systemctl enable --now update-smartctl-cache.timer
+----
+
+// test just labeling the subdirectory in /opt as below
+. Relabel the `/var/opt/mad-hacking.net` directory and its contents as the `usr_t` type to allow execution of the utilities by SELinux.
++
+[,sh]
+----
+sudo chcon -R -t usr_t /var/opt/mad-hacking.net
+----
+
+test
+[,sh]
+----
+sudo /opt/mad-hacking.net/snmp/sbin/snmpd-smartctl-connector
+----
+
+// curl -LO https://github.com/librenms/librenms-agent/raw/master/snmp/systemd.py
+// chmod +x systemd.py
+// sudo mv systemd.py /etc/snmp/
+
+// curl -LO https://github.com/librenms/librenms-agent/raw/master/snmp/smart-v1
+// chmod +x smart-v1
+// sudo mv smart-v1 /etc/snmp/smart
 
 . Reboot to complete the installation.
 +
@@ -227,47 +424,59 @@ sudo firewall-cmd --add-service=snmp --permanent
 sudo firewall-cmd --reload
 ----
 
-. Create an SELinux policy to allow snmpd to query systemd for service state.
-+
-.snmpd_systemctl.te
-[source]
-----
-module snmpd_systemctl 1.0;
+// . Create an SELinux policy to allow snmpd to query systemd for service state.
+// +
+// .snmpd_systemctl.te
+// [source]
+// ----
+// module snmpd_systemctl 1.0;
 
-require {
-        type snmpd_t;
-        type systemd_systemctl_exec_t;
-        type init_t;
-        class file { execute execute_no_trans map open read };
-        class unix_stream_socket connectto;
-        class system status;
-}
+// require {
+//         type snmpd_t;
+//         type systemd_systemctl_exec_t;
+//         type init_t;
+//         class file { execute execute_no_trans map open read };
+//         class unix_stream_socket connectto;
+//         class system status;
+// }
 
-#============= snmpd_t ==============
-allow snmpd_t init_t:system status;
-allow snmpd_t init_t:unix_stream_socket connectto;
-allow snmpd_t systemd_systemctl_exec_t:file { execute execute_no_trans map open read };
-----
+// #============= snmpd_t ==============
+// allow snmpd_t init_t:system status;
+// allow snmpd_t init_t:unix_stream_socket connectto;
+// allow snmpd_t systemd_systemctl_exec_t:file { execute execute_no_trans map open read };
+// ----
 
-. Compile the SELinux policy module.
+// . Compile the SELinux policy module.
+// +
+// [,sh]
+// ----
+// checkmodule -m --mls --output snmpd_systemctl.mod snmpd_systemctl.te
+// ----
+
+// . Create a SELinux policy module package.
+// +
+// [,sh]
+// ----
+// semodule_package --outfile snmpd_systemctl.pp --module snmpd_systemctl.mod
+// ----
+
+// . Install the SELinux Policy module.
+// +
+// [,sh]
+// ----
+// sudo semodule --install snmpd_systemctl.pp
+// ----
+
+. Unfortunately, SELinux doesn't want to allow execution of the `systemctl` command from the `snmpd_t` context.
+This is allowed to check if a systemd service has failed.
+A typical process check won't work in cases where the systemd unit runs at intervals.
+Disable SELinux from enforcing the `snmpd_t` context to allow this functionality.
+I wasn't able to get this working with a custom SELinux module.
+Ideally, this workaround would be less permissive but I haven't figured out a way to do that yet.
 +
 [,sh]
 ----
-checkmodule -m --mls --output snmpd_systemctl.mod snmpd_systemctl.te
-----
-
-. Create a SELinux policy module package.
-+
-[,sh]
-----
-semodule_package --outfile snmpd_systemctl.pp --module snmpd_systemctl.mod
-----
-
-. Install the SELinux Policy module.
-+
-[,sh]
-----
-sudo semodule --install snmpd_systemctl.pp
+sudo semanage permissive -a snmpd_t
 ----
 
 . Ensure that the `snmpd` daemon is stopped.
@@ -450,6 +659,7 @@ cp etc/snmp/hosts/cm4-01.conf etc/snmp/hosts/cm4-02.conf
 
 * https://bookshop.org/p/books/snmp-mastery-michael-w-lucas/14394929[SNMP Mastery] by Michael W. Lucas
 * https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/ch-system_monitoring_tools#sect-System_Monitoring_Tools-Net-SNMP[Red Hat Enterprise Linux 7 System Administrator's Guide - 21.7. Monitoring Performance with Net-SNMP]
+* http://pig.made-it.com/snmp_smart.html[Extending NET-SNMP with S.M.A.R.T. information]
 
 == Code of Conduct
 
@@ -462,7 +672,7 @@ Please refer to the bundled link:LICENSE.adoc[license].
 
 == Copyright
 
-© 2023 Jordan Williams
+© 2023-2024 Jordan Williams
 
 == Authors
 

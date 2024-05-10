@@ -1,0 +1,6 @@
+[Unit]
+Description=Updates the smartctl statistics for the Net-SNMP daemon
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/mad-hacking.net/snmp/sbin/update-smartctl-cache

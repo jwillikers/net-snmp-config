@@ -1,0 +1,9 @@
+[Unit]
+Description=Updates the smartctl statistics at regular intervals
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1hour
+
+[Install]
+WantedBy=timers.target
