@@ -191,9 +191,9 @@ sudo apt-get --yes install lm-sensors snmp snmpd
 ----
 
 Fedora::
-+
 Install the `lm_sensors`, `net-snmp`, and `net-snmp-utils` packages.
 The `lm_sensors` package is used to report reading of hardware senors.
++
 --
 [,sh]
 ----
@@ -246,11 +246,11 @@ sudo semanage permissive -a snmpd_t
 sudo systemctl stop snmpd
 ----
 
-. Copy `snmpd.conf` file from the `etc/snmp/` directory for the desired host to `/etc/snmp/snmpd.conf`.
+. Copy the `snmpd.conf` file from the `etc/snmp/` directory for the desired host to `/etc/snmp/snmpd.conf`.
 +
 [,sh]
 ----
-sudo cp etc/snmp/$(hostname --short).snmpd.conf /etc/snmp/snmpd.conf
+sudo cp etc/snmp/$(hostname --short).conf /etc/snmp/snmpd.conf
 ----
 
 . Ensure that the `/etc/snmp/snmpd.conf` file is labelled correctly for SELinux.
