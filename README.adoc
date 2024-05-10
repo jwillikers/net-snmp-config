@@ -55,7 +55,7 @@ sudo rpm-ostree install net-snmp-utils
 +
 [,sh]
 ----
-sudo systemctl reboot.
+sudo systemctl reboot
 ----
 
 User::
@@ -210,7 +210,7 @@ While the `net-snmp-utils` package is not required to run the agent or to create
 +
 [,sh]
 ----
-sudo systemctl reboot.
+sudo systemctl reboot
 ----
 
 . Add a firewall rule to open the necessary port.
@@ -431,7 +431,7 @@ Please refer to the bundled link:LICENSE.adoc[license].
 
 == Copyright
 
-© 2023 Jordan Williams
+© 2023-2024 Jordan Williams
 
 == Authors
 
